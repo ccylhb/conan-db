@@ -1,0 +1,65 @@
+---
+import Base from "../layouts/Base.astro";
+import Related from "../components/Related.astro";
+import weapons from "../data/conan_weapons.json";
+import armor from "../data/conan_armor.json";
+import thralls from "../data/conan_thralls.json";
+import consumables from "../data/conan_consumables.json";
+
+const total = weapons.length + armor.length + thralls.length + consumables.length;
+const topWeapon = weapons.filter((w) => w.dmg && w.weapon_class).sort((a, b) => b.dmg - a.dmg)[0];
+const topArmor = armor.filter((a) => a.armor).sort((a, b) => b.armor - a.armor)[0];
+const topThrall = thralls.slice().sort((a, b) => b.hp - a.hp)[0];
+---
+<Base title="ConanDB — Conan Exiles database: weapons, armor, thralls & consumables" description={`Conan Exiles stats database: ${total} entries — weapon damage & armor pen, armor values with heat/cold resist, thrall HP & XP, food buffs, plus an armor finder.`}>
+  <div style="text-align:center;margin:2.5rem 0 2rem">
+    <h1 style="font-size:clamp(2.2rem,6vw,3.4rem)">Conan Exiles, in numbers.</h1>
+    <p class="muted" style="font-size:1.15rem;max-width:640px;margin:0.75rem auto">
+      {total} entries with exact values — damage, armor penetration, resistances, HP and buffs. Built for players who want the number, not the lore.
+    </p>
+    <p style="margin-top:1.5rem">
+      <a href="/weapons/" style="display:inline-block;background:var(--accent);color:var(--bg);font-weight:700;padding:0.7rem 1.4rem;border-radius:10px;margin:0.25rem">Browse {weapons.length} weapons</a>
+      <a href="/armor-finder/" style="display:inline-block;border:1px solid var(--accent);color:var(--accent);font-weight:700;padding:0.7rem 1.4rem;border-radius:10px;margin:0.25rem">Open Armor Finder</a>
+    </p>
+  </div>
+
+  <div class="grid grid-3" style="margin:2rem 0">
+    <a class="card" href="/weapons/" style="color:inherit">
+      <div class="stat-num">{weapons.length}</div>
+      <div class="stat-label">Weapons · dmg & pen</div>
+      <p class="muted" style="font-size:0.9rem">Light/heavy damage, armor penetration, stamina cost — every weapon class.</p>
+    </a>
+    <a class="card" href="/armor/" style="color:inherit">
+      <div class="stat-num">{armor.length}</div>
+      <div class="stat-label">Armor pieces · value & resist</div>
+      <p class="muted" style="font-size:0.9rem">Armor value, heat/cold resistance, set bonuses for every piece.</p>
+    </a>
+    <a class="card" href="/thralls/" style="color:inherit">
+      <div class="stat-num">{thralls.length}</div>
+      <div class="stat-label">Thralls & creatures · HP</div>
+      <p class="muted" style="font-size:0.9rem">Health, armor, kill XP and location for every NPC.</p>
+    </a>
+  </div>
+
+  <h2>Jump to the answer</h2>
+  <div class="card answer-card">
+    <ul style="margin:0;padding-left:1.2rem;line-height:2">
+      <li>Strongest weapon: <a href={`/weapons/${topWeapon?.slug}/`}>{topWeapon?.name}</a> — {topWeapon?.dmg} damage ({topWeapon?.weapon_class})</li>
+      <li>Highest armor value: <a href={`/armor/${topArmor?.slug}/`}>{topArmor?.name}</a> — {topArmor?.armor} armor ({topArmor?.armor_type})</li>
+      <li>Toughest creature: <a href={`/thralls/${topThrall?.slug}/`}>{topThrall?.name}</a> — {topThrall?.hp} HP</li>
+      <li>Best healing item: see the <a href="/rankings/">rankings</a> — all five leaderboards in one place</li>
+    </ul>
+  </div>
+
+  <Related
+    heading="All boards"
+    links={[
+      { href: "/weapons/", title: "Weapons", sub: `${weapons.length} entries`, icon: topWeapon?.icon_file ? `/icons/${topWeapon.icon_file}` : undefined },
+      { href: "/armor/", title: "Armor", sub: `${armor.length} entries` },
+      { href: "/thralls/", title: "Thralls & Creatures", sub: `${thralls.length} entries` },
+      { href: "/consumables/", title: "Consumables", sub: `${consumables.length} entries` },
+      { href: "/rankings/", title: "Rankings", sub: "Five leaderboards" },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter by bonus & type", tool: true },
+    ]}
+  />
+</Base>

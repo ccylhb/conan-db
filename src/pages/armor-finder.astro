@@ -1,0 +1,82 @@
+---
+import Base from "../layouts/Base.astro";
+import Related from "../components/Related.astro";
+import armor from "../data/conan_armor.json";
+
+const types = Array.from(new Set(armor.map((a) => a.armor_type).filter(Boolean))).sort();
+const grades = Array.from(new Set(armor.map((a) => a.grade).filter(Boolean))).sort();
+---
+<Base
+  title="Conan Exiles Armor Finder — filter 1,700+ pieces by type, grade & bonus"
+  description="Client-side Conan Exiles armor finder: filter all armor by type, grade, armor value, heat/cold resistance and bonus keywords like Strength or Encumbrance."
+>
+  <h1>Armor Finder</h1>
+  <p class="muted">{armor.length} pieces · filter by type, grade and bonus keywords, sort by any stat. Everything runs in your browser.</p>
+
+  <div class="card" style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;margin:1rem 0">
+    <input id="q" type="search" placeholder="Name or bonus keyword (e.g. Strength, Encumbrance)..." style="flex:1;min-width:220px" />
+    <select id="type"><option value="">All types</option>{types.map((t) => <option>{t}</option>)}</select>
+    <select id="grade"><option value="">All grades</option>{grades.map((g) => <option>{g}</option>)}</select>
+    <select id="sort">
+      <option value="armor">Sort: Armor</option>
+      <option value="heat">Sort: Heat resist</option>
+      <option value="cold">Sort: Cold resist</option>
+      <option value="weight">Sort: Weight</option>
+      <option value="name">Sort: Name</option>
+    </select>
+  </div>
+
+  <div id="results" style="overflow-x:auto"><table>
+    <thead><tr><th></th><th>Piece</th><th>Type</th><th>Grade</th><th>Armor</th><th>Heat</th><th>Cold</th><th>Wgt</th><th>Bonus</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+  <p class="muted" id="count" style="font-size:0.85rem"></p>
+
+  <script define:vars={{ armor, types, grades }}>
+    const tbody = document.getElementById("tbody");
+    const q = document.getElementById("q");
+    const type = document.getElementById("type");
+    const grade = document.getElementById("grade");
+    const sort = document.getElementById("sort");
+    const count = document.getElementById("count");
+    const icon = (a) => a.icon_file ? `<img src="/icons/${a.icon_file}" alt="" width="26" height="26" loading="lazy" />` : "";
+    const render = () => {
+      const query = q.value.trim().toLowerCase();
+      const t = type.value, g = grade.value, s = sort.value;
+      let rows = armor.filter((a) => {
+        if (t && a.armor_type !== t) return false;
+        if (g && a.grade !== g) return false;
+        if (query) {
+          const hay = (a.name + " " + (a.armor_set || "") + " " + (a.bonus || "")).toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+      const cmp = {
+        armor: (a, b) => (b.armor || 0) - (a.armor || 0),
+        heat: (a, b) => (b.heat_res || 0) - (a.heat_res || 0),
+        cold: (a, b) => (b.cold_res || 0) - (a.cold_res || 0),
+        weight: (a, b) => (a.weight || 0) - (b.weight || 0),
+        name: (a, b) => a.name.localeCompare(b.name),
+      }[s];
+      rows.sort(cmp);
+      tbody.innerHTML = rows.slice(0, 120).map((a) =>
+        `<tr><td>${icon(a)}</td><td><a href="/armor/${a.slug}/">${a.name}</a></td>` +
+        `<td>${a.armor_type || ""}</td><td>${a.grade || ""}</td>` +
+        `<td>${a.armor ?? ""}</td><td>${a.heat_res ?? ""}</td><td>${a.cold_res ?? ""}</td>` +
+        `<td>${a.weight ?? ""}</td><td>${(a.bonus || "").slice(0, 80)}</td></tr>`
+      ).join("");
+      count.textContent = `${rows.length} matches${rows.length > 120 ? " (showing first 120)" : ""}`;
+    };
+    [q, type, grade, sort].forEach((el) => el.addEventListener("input", render));
+    render();
+  </script>
+
+  <Related
+    links={[
+      { href: "/armor/", title: "All Armor", sub: "Sortable armor table" },
+      { href: "/rankings/", title: "Rankings", sub: "Top armor by value" },
+      { href: "/weapons/", title: "Browse Weapons", sub: "Damage & armor pen" },
+    ]}
+  />
+</Base>

@@ -1,0 +1,61 @@
+---
+import Base from "../../layouts/Base.astro";
+import Related from "../../components/Related.astro";
+import thralls from "../../data/conan_thralls.json";
+
+export function getStaticPaths() {
+  return thralls.map((t) => ({ params: { slug: t.slug }, props: { t } }));
+}
+
+const { t } = Astro.props as any;
+const stats = [
+  { label: "HP", value: t.hp },
+  { label: "Armor", value: t.armor },
+  { label: "Kill XP", value: t.kill_xp },
+];
+const tougher = thralls
+  .filter((x: any) => x.class === t.class && x.slug !== t.slug && x.type !== "Normal")
+  .sort((a: any, b: any) => (b.hp || 0) - (a.hp || 0))
+  .slice(0, 6);
+---
+<Base
+  title={`${t.name} — Conan Exiles thrall stats (HP ${t.hp})`}
+  description={`${t.name}: ${t.hp} HP, armor ${t.armor ?? "?"}, ${t.kill_xp ?? "?"} kill XP${t.loc ? `, located at ${t.loc}` : ""} — Conan Exiles thrall & creature stats.`}
+>
+  <h1 class="icon-h1">
+    {t.icon_file ? <img src={`/icons/${t.icon_file}`} alt={t.name} loading="eager" /> : null}
+    <span>{t.name}</span>
+  </h1>
+  <div class="card answer-card" style="margin:1rem 0">
+    <div class="stat-row">
+      {stats.map((s) => (
+        <div>
+          <div class="stat-num">{s.value ?? "—"}</div>
+          <div class="stat-label">{s.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+  <p>
+    {t.class && <span class="tag" style="margin:0.1rem">{t.class}</span>}
+    {t.type && <span class="tag" style="margin:0.1rem">{t.type}</span>}
+    {t.temperament && <span class="tag" style="margin:0.1rem">{t.temperament}</span>}
+    {t.thrallable === "yes" && <span class="tag" style="margin:0.1rem">Thrallable</span>}
+    {t.faction && <span class="tag" style="margin:0.1rem">{t.faction}</span>}
+    {t.id && <span class="tag" style="margin:0.1rem">ID: {t.id}</span>}
+  </p>
+  {t.loc && <p><strong>Location:</strong> {t.loc}</p>}
+  <Related
+    links={[
+      ...tougher.map((s: any) => ({
+        href: `/thralls/${s.slug}/`,
+        title: s.name,
+        sub: `${s.hp} HP · ${s.class || ""}`,
+        icon: s.icon_file ? `/icons/${s.icon_file}` : undefined,
+      })),
+      { href: "/thralls/", title: "All Thralls", sub: "Sortable NPC table" },
+      { href: "/weapons/", title: "Browse Weapons", sub: "Pick the right tool for the hunt" },
+      { href: "/rankings/", title: "Rankings", sub: "Toughest targets" },
+    ]}
+  />
+</Base>

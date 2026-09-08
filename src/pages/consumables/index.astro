@@ -1,0 +1,47 @@
+---
+import Base from "../../layouts/Base.astro";
+import DataTable from "../../components/DataTable.astro";
+import Related from "../../components/Related.astro";
+import consumables from "../../data/conan_consumables.json";
+
+const rows = consumables
+  .map((c) => ({
+    name: `<a href="/consumables/${c.slug}/">${c.name}</a>${c.icon_file ? ` <img src="/icons/${c.icon_file}" alt="" width="22" height="22" style="vertical-align:middle" loading="lazy" />` : ""}`,
+    _sort: c.name.toLowerCase(),
+    heal: c.heal ?? "",
+    food: c.food ?? "",
+    drink: c.drink ?? "",
+    stack: c.stack ?? "",
+    weight: c.weight ?? "",
+    effect: c.effect || "",
+  }))
+  .sort((a: any, b: any) => a._sort.localeCompare(b._sort));
+---
+<Base
+  title={`Conan Exiles Consumables — ${consumables.length} foods & drinks with buffs`}
+  description={`Conan Exiles consumable database: healing, food and drink values, status effects and stack size for ${consumables.length} items.`}
+>
+  <h1>Conan Exiles Consumables</h1>
+  <p class="muted">{consumables.length} foods & drinks · heal / food / drink values and status effects. Sortable & searchable.</p>
+  <DataTable
+    id="consumables"
+    rows={rows as any}
+    searchPlaceholder="Search consumables..."
+    columns={[
+      { key: "name", label: "Item" },
+      { key: "heal", label: "Heal", type: "number" },
+      { key: "food", label: "Food", type: "number" },
+      { key: "drink", label: "Drink", type: "number" },
+      { key: "stack", label: "Stack", type: "number" },
+      { key: "weight", label: "Wgt", type: "number" },
+      { key: "effect", label: "Effect" },
+    ]}
+  />
+  <Related
+    links={[
+      { href: "/weapons/", title: "Browse Weapons", sub: "Damage & armor pen" },
+      { href: "/armor/", title: "Browse Armor", sub: "Armor values & resistances" },
+      { href: "/rankings/", title: "Rankings", sub: "Best heals & buffs" },
+    ]}
+  />
+</Base>

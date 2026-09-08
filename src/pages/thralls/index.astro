@@ -1,0 +1,49 @@
+---
+import Base from "../../layouts/Base.astro";
+import DataTable from "../../components/DataTable.astro";
+import Related from "../../components/Related.astro";
+import thralls from "../../data/conan_thralls.json";
+
+const rows = thralls
+  .map((t) => ({
+    name: `<a href="/thralls/${t.slug}/">${t.name}</a>`,
+    _sort: t.name.toLowerCase(),
+    cls: t.class || "",
+    type: t.type || "",
+    hp: t.hp ?? "",
+    ar: t.armor ?? "",
+    xp: t.kill_xp ?? "",
+    temp: t.temperament || "",
+    loc: t.loc || "",
+  }))
+  .sort((a: any, b: any) => a._sort.localeCompare(b._sort));
+---
+<Base
+  title={`Conan Exiles Thralls & Creatures — ${thralls.length} NPCs with HP & XP`}
+  description={`Conan Exiles thrall and creature database: health, armor, kill XP, temperament and location for ${thralls.length} NPCs.`}
+>
+  <h1>Conan Exiles Thralls & Creatures</h1>
+  <p class="muted">{thralls.length} NPCs · health, armor, kill XP, temperament, location. Sortable & searchable.</p>
+  <DataTable
+    id="thralls"
+    rows={rows as any}
+    searchPlaceholder="Search thralls & creatures..."
+    columns={[
+      { key: "name", label: "Name" },
+      { key: "cls", label: "Class" },
+      { key: "type", label: "Type" },
+      { key: "hp", label: "HP", type: "number" },
+      { key: "ar", label: "Armor", type: "number" },
+      { key: "xp", label: "Kill XP", type: "number" },
+      { key: "temp", label: "Temperament" },
+      { key: "loc", label: "Location" },
+    ]}
+  />
+  <Related
+    links={[
+      { href: "/rankings/", title: "Rankings", sub: "Toughest thralls by HP" },
+      { href: "/weapons/", title: "Browse Weapons", sub: "Damage & armor pen" },
+      { href: "/armor/", title: "Browse Armor", sub: "Armor values & resistances" },
+    ]}
+  />
+</Base>

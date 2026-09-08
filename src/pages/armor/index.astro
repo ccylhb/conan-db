@@ -1,0 +1,56 @@
+---
+import Base from "../../layouts/Base.astro";
+import DataTable from "../../components/DataTable.astro";
+import Related from "../../components/Related.astro";
+import armor from "../../data/conan_armor.json";
+
+const rows = armor
+  .map((a) => ({
+    name: `<a href="/armor/${a.slug}/">${a.name}</a>${a.icon_file ? ` <img src="/icons/${a.icon_file}" alt="" width="22" height="22" style="vertical-align:middle" loading="lazy" />` : ""}`,
+    _sort: a.name.toLowerCase(),
+    type: a.armor_type || "",
+    set: a.armor_set || "",
+    grade: a.grade || "",
+    ar: a.armor ?? "",
+    heat: a.heat_res ?? "",
+    cold: a.cold_res ?? "",
+    dura: a.dura ?? "",
+    weight: a.weight ?? "",
+  }))
+  .sort((a: any, b: any) => a._sort.localeCompare(b._sort));
+
+const types = Array.from(new Set(armor.map((a) => a.armor_type).filter(Boolean))).sort();
+---
+<Base
+  title={`Conan Exiles Armor — ${armor.length} pieces with armor value & resistances`}
+  description={`Complete Conan Exiles armor database: armor value, heat/cold resistance, weight, set bonus and grade for ${armor.length} pieces.`}
+>
+  <h1>Conan Exiles Armor</h1>
+  <p class="muted">{armor.length} pieces · armor value, heat & cold resist, set bonus. Click a column to sort.</p>
+  <p>
+    {types.map((c) => <span class="tag" style="margin:0.1rem">{c}</span>)}
+  </p>
+  <DataTable
+    id="armor"
+    rows={rows as any}
+    searchPlaceholder="Search armor..."
+    columns={[
+      { key: "name", label: "Piece" },
+      { key: "type", label: "Type" },
+      { key: "set", label: "Set" },
+      { key: "grade", label: "Grade" },
+      { key: "ar", label: "Armor", type: "number" },
+      { key: "heat", label: "Heat", type: "number" },
+      { key: "cold", label: "Cold", type: "number" },
+      { key: "dura", label: "Dura", type: "number" },
+      { key: "weight", label: "Wgt", type: "number" },
+    ]}
+  />
+  <Related
+    links={[
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Search by bonus keyword, filter by type", tool: true },
+      { href: "/weapons/", title: "Browse Weapons", sub: `${1193} weapons with damage stats` },
+      { href: "/rankings/", title: "Rankings", sub: "Best armor by value" },
+    ]}
+  />
+</Base>

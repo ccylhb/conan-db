@@ -1,0 +1,68 @@
+---
+import Base from "../../layouts/Base.astro";
+import Related from "../../components/Related.astro";
+import armor from "../../data/conan_armor.json";
+
+export function getStaticPaths() {
+  return armor.map((a) => ({ params: { slug: a.slug }, props: { a } }));
+}
+
+const { a } = Astro.props as any;
+const stats = [
+  { label: "Armor Value", value: a.armor },
+  { label: "Heat Resist", value: a.heat_res },
+  { label: "Cold Resist", value: a.cold_res },
+  { label: "Durability", value: a.dura },
+  { label: "Weight", value: a.weight },
+  { label: "Min Level", value: a.min_level },
+];
+const shown = stats.filter((s) => s.value !== null && s.value !== undefined && s.value !== "");
+
+const setmates = a.armor_set
+  ? armor.filter((x: any) => x.armor_set === a.armor_set && x.slug !== a.slug).slice(0, 6)
+  : [];
+---
+<Base
+  title={`${a.name} — Conan Exiles armor stats`}
+  description={`${a.name}: armor ${a.armor ?? "?"}, heat resist ${a.heat_res ?? "?"}, cold resist ${a.cold_res ?? "?"} — full Conan Exiles armor stats${a.bonus ? ` with bonus: ${a.bonus}` : ""}.`}
+>
+  <h1 class="icon-h1">
+    {a.icon_file ? <img src={`/icons/${a.icon_file}`} alt={a.name} loading="eager" /> : null}
+    <span>{a.name}</span>
+  </h1>
+  {a.desc && <p class="muted">{a.desc}</p>}
+  <div class="card answer-card" style="margin:1rem 0">
+    <div class="stat-row">
+      {shown.map((s) => (
+        <div><div class="stat-num">{s.value}</div><div class="stat-label">{s.label}</div></div>
+      ))}
+    </div>
+  </div>
+  <p>
+    {a.armor_type && <span class="tag" style="margin:0.1rem">{a.armor_type} Armor</span>}
+    {a.grade && <span class="tag" style="margin:0.1rem">{a.grade}</span>}
+    {a.armor_set && <span class="tag" style="margin:0.1rem">Set: {a.armor_set}</span>}
+    {a.dyeable === "yes" && <span class="tag" style="margin:0.1rem">Dyeable</span>}
+    {a.id && <span class="tag" style="margin:0.1rem">ID: {a.id}</span>}
+  </p>
+  {a.bonus && (
+    <div class="card" style="margin:1rem 0">
+      <strong style="color:var(--accent)">Set / Piece Bonus</strong>
+      <p style="margin:0.4rem 0 0">{a.bonus}</p>
+    </div>
+  )}
+  {a.intro && <p>{a.intro}</p>}
+  <Related
+    links={[
+      ...setmates.map((s: any) => ({
+        href: `/armor/${s.slug}/`,
+        title: s.name,
+        sub: `Armor ${s.armor ?? "?"} · ${s.armor_type || ""}`,
+        icon: s.icon_file ? `/icons/${s.icon_file}` : undefined,
+      })),
+      { href: "/armor/", title: "All Armor", sub: "Sortable armor table" },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter by type & bonus", tool: true },
+      { href: "/weapons/", title: "Browse Weapons", sub: "Damage & armor pen" },
+    ]}
+  />
+</Base>

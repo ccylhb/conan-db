@@ -1,0 +1,102 @@
+---
+import Base from "../layouts/Base.astro";
+import Related from "../components/Related.astro";
+import weapons from "../data/conan_weapons.json";
+import armor from "../data/conan_armor.json";
+import thralls from "../data/conan_thralls.json";
+import consumables from "../data/conan_consumables.json";
+
+const topWeapons = weapons
+  .filter((w) => w.dmg && w.weapon_class)
+  .sort((a, b) => b.dmg - a.dmg)
+  .slice(0, 15);
+const topPen = weapons
+  .filter((w) => w.armor_pen)
+  .sort((a, b) => b.armor_pen - a.armor_pen)
+  .slice(0, 15);
+const topArmor = armor
+  .filter((a) => a.armor && a.armor_type !== "Shield")
+  .sort((a, b) => b.armor - a.armor)
+  .slice(0, 15);
+const topThralls = thralls
+  .slice()
+  .sort((a, b) => (b.hp || 0) - (a.hp || 0))
+  .slice(0, 15);
+const topHeals = consumables
+  .filter((c) => c.heal)
+  .sort((a, b) => b.heal - a.heal)
+  .slice(0, 10);
+
+const row = (x: any, href: string, val: any, icon?: string) => ({
+  name: `<a href="${href}">${x.name}</a>`,
+  val,
+  icon: icon ? `<img src="${icon}" alt="" width="22" height="22" style="vertical-align:middle" loading="lazy" />` : "",
+});
+const weaponsRows = (list: any[], key: string) =>
+  list.map((w) => row(w, `/weapons/${w.slug}/`, `${w[key]}${key === "armor_pen" ? "%" : ""}`, w.icon_file ? `/icons/${w.icon_file}` : undefined));
+const thrallRows = topThralls.map((t) => row(t, `/thralls/${t.slug}/`, t.hp, t.icon_file ? `/icons/${t.icon_file}` : undefined));
+const armorRows = topArmor.map((a) => row(a, `/armor/${a.slug}/`, a.armor, a.icon_file ? `/icons/${a.icon_file}` : undefined));
+const healRows = topHeals.map((c) => row(c, `/consumables/${c.slug}/`, c.heal, c.icon_file ? `/icons/${c.icon_file}` : undefined));
+---
+<Base title="Conan Exiles Rankings — best weapons, armor & thralls" description="Top Conan Exiles weapons by damage and armor penetration, highest armor value pieces, toughest thralls by HP, best healing consumables.">
+  <h1>Rankings</h1>
+  <p class="muted">Answer-first leaderboards across all four boards. Values straight from the game data.</p>
+
+  <h2>Top 15 Weapons by Damage</h2>
+  <table>
+    <thead><tr><th>#</th><th></th><th>Weapon</th><th>Damage</th></tr></thead>
+    <tbody>
+      {weaponsRows(topWeapons, "dmg").map((r, i) => (
+        <tr><td>{i + 1}</td><td set:html={r.icon} /><td set:html={r.name} /><td set:html={r.val} /></tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>Top 15 Weapons by Armor Penetration</h2>
+  <table>
+    <thead><tr><th>#</th><th></th><th>Weapon</th><th>Pen %</th></tr></thead>
+    <tbody>
+      {weaponsRows(topPen, "armor_pen").map((r, i) => (
+        <tr><td>{i + 1}</td><td set:html={r.icon} /><td set:html={r.name} /><td set:html={r.val} /></tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>Top 15 Armor by Armor Value</h2>
+  <table>
+    <thead><tr><th>#</th><th></th><th>Piece</th><th>Armor</th></tr></thead>
+    <tbody>
+      {armorRows.map((r, i) => (
+        <tr><td>{i + 1}</td><td set:html={r.icon} /><td set:html={r.name} /><td set:html={r.val} /></tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>Top 15 Toughest Thralls & Creatures (HP)</h2>
+  <table>
+    <thead><tr><th>#</th><th></th><th>Name</th><th>HP</th></tr></thead>
+    <tbody>
+      {thrallRows.map((r, i) => (
+        <tr><td>{i + 1}</td><td set:html={r.icon} /><td set:html={r.name} /><td set:html={r.val} /></tr>
+      ))}
+    </tbody>
+  </table>
+
+  <h2>Top 10 Healing Consumables</h2>
+  <table>
+    <thead><tr><th>#</th><th></th><th>Item</th><th>Heal</th></tr></thead>
+    <tbody>
+      {healRows.map((r, i) => (
+        <tr><td>{i + 1}</td><td set:html={r.icon} /><td set:html={r.name} /><td set:html={r.val} /></tr>
+      ))}
+    </tbody>
+  </table>
+
+  <Related
+    links={[
+      { href: "/weapons/", title: "All Weapons", sub: "Sortable weapon table" },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter 1,700+ armor pieces", tool: true },
+      { href: "/thralls/", title: "All Thralls", sub: "Every NPC with HP & XP" },
+    ]}
+  />
+</Base>

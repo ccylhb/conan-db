@@ -1,0 +1,60 @@
+---
+import Base from "../../layouts/Base.astro";
+import Related from "../../components/Related.astro";
+import consumables from "../../data/conan_consumables.json";
+
+export function getStaticPaths() {
+  return consumables.map((c) => ({ params: { slug: c.slug }, props: { c } }));
+}
+
+const { c } = Astro.props as any;
+const stats = [
+  { label: "Heal", value: c.heal },
+  { label: "Food", value: c.food },
+  { label: "Drink", value: c.drink },
+  { label: "Stack", value: c.stack },
+  { label: "Weight", value: c.weight },
+];
+const shown = stats.filter((s) => s.value !== null && s.value !== undefined && s.value !== "");
+const related = consumables
+  .filter((x: any) => x.slug !== c.slug && (x.heal || x.food || x.drink) && (c.heal || c.food || c.drink))
+  .sort((a: any, b: any) => ((b.heal || 0) - (a.heal || 0)))
+  .slice(0, 6);
+---
+<Base
+  title={`${c.name} — Conan Exiles consumable stats`}
+  description={`${c.name}: heal ${c.heal ?? 0}, food ${c.food ?? 0}, drink ${c.drink ?? 0}${c.effect ? `, effects: ${c.effect}` : ""} — Conan Exiles consumable stats.`}
+>
+  <h1 class="icon-h1">
+    {c.icon_file ? <img src={`/icons/${c.icon_file}`} alt={c.name} loading="eager" /> : null}
+    <span>{c.name}</span>
+  </h1>
+  {c.desc && <p class="muted">{c.desc}</p>}
+  <div class="card answer-card" style="margin:1rem 0">
+    <div class="stat-row">
+      {shown.map((s) => (
+        <div><div class="stat-num">{s.value}</div><div class="stat-label">{s.label}</div></div>
+      ))}
+    </div>
+  </div>
+  <p>
+    {c.effect && <span class="tag" style="margin:0.1rem">Effect: {c.effect}</span>}
+    {c.ingredient === "yes" && <span class="tag" style="margin:0.1rem">Crafting ingredient</span>}
+    {c.grade && <span class="tag" style="margin:0.1rem">{c.grade}</span>}
+    {c.id && <span class="tag" style="margin:0.1rem">ID: {c.id}</span>}
+  </p>
+  {c.intro && <p>{c.intro}</p>}
+  <Related
+    links={[
+      ...related.map((s: any) => ({
+        href: `/consumables/${s.slug}/`,
+        title: s.name,
+        sub: `Heal ${s.heal ?? 0} · Food ${s.food ?? 0} · Drink ${s.drink ?? 0}`,
+        icon: s.icon_file ? `/icons/${s.icon_file}` : undefined,
+      })),
+      { href: "/consumables/", title: "All Consumables", sub: "Sortable table" },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter 1,700+ armor pieces", tool: true },
+      { href: "/weapons/", title: "Browse Weapons", sub: "Damage & armor pen" },
+    ]}
+  />
+</Base>

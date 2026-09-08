@@ -1,0 +1,68 @@
+---
+import Base from "../../layouts/Base.astro";
+import Related from "../../components/Related.astro";
+import weapons from "../../data/conan_weapons.json";
+
+export function getStaticPaths() {
+  return weapons.map((w) => ({ params: { slug: w.slug }, props: { w } }));
+}
+
+const { w } = Astro.props as any;
+const stats = [
+  { label: "Damage", value: w.dmg },
+  { label: "Light", value: w.dmg_light },
+  { label: "Heavy", value: w.dmg_heavy },
+  { label: "Armor Pen", value: w.armor_pen != null ? w.armor_pen + "%" : null },
+  { label: "Stamina", value: w.stamina_basic },
+  { label: "Stamina Special", value: w.stamina_special },
+  { label: "Poise Dmg", value: w.poise },
+  { label: "Durability", value: w.dura },
+  { label: "Weight", value: w.weight },
+  { label: "Tier", value: w.item_tier },
+];
+const shown = stats.filter((s) => s.value !== null && s.value !== undefined && s.value !== "");
+
+const similar = weapons
+  .filter((x: any) => x.weapon_class === w.weapon_class && x.slug !== w.slug && x.dmg)
+  .sort((a: any, b: any) => (b.dmg || 0) - (a.dmg || 0))
+  .slice(0, 6);
+---
+<Base
+  title={`${w.name} — Conan Exiles weapon stats`}
+  description={`${w.name}: damage ${w.dmg ?? "?"}, light ${w.dmg_light ?? "?"}, heavy ${w.dmg_heavy ?? "?"}, armor pen ${w.armor_pen ?? "?"}% — full Conan Exiles weapon stats.`}
+>
+  <h1 class="icon-h1">
+    {w.icon_file ? <img src={`/icons/${w.icon_file}`} alt={w.name} loading="eager" /> : null}
+    <span>{w.name}</span>
+  </h1>
+  {w.desc && <p class="muted">{w.desc}</p>}
+  <div class="card answer-card" style="margin:1rem 0">
+    <div class="stat-row">
+      {shown.map((s) => (
+        <div><div class="stat-num">{s.value}</div><div class="stat-label">{s.label}</div></div>
+      ))}
+    </div>
+  </div>
+  <p>
+    {w.weapon_class && <span class="tag" style="margin:0.1rem">{w.weapon_class}</span>}
+    {w.grade && <span class="tag" style="margin:0.1rem">{w.grade}</span>}
+    {w.base_damage_type && <span class="tag" style="margin:0.1rem">Scales: {w.base_damage_type}</span>}
+    {w.effect && <span class="tag" style="margin:0.1rem">Effect: {w.effect}</span>}
+    {w.dlc && <span class="tag" style="margin:0.1rem">DLC: {w.dlc}</span>}
+    {w.id && <span class="tag" style="margin:0.1rem">ID: {w.id}</span>}
+  </p>
+  {w.intro && <p>{w.intro}</p>}
+  <Related
+    links={[
+      ...similar.map((s: any) => ({
+        href: `/weapons/${s.slug}/`,
+        title: s.name,
+        sub: `Dmg ${s.dmg ?? "?"} · ${s.weapon_class || ""}`,
+        icon: s.icon_file ? `/icons/${s.icon_file}` : undefined,
+      })),
+      { href: "/weapons/", title: "All Weapons", sub: "Sortable weapon table" },
+      { href: "/rankings/", title: "Rankings", sub: "Top weapons & armor" },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter 1,700+ armor pieces", tool: true },
+    ]}
+  />
+</Base>

@@ -1,0 +1,58 @@
+---
+import Base from "../../layouts/Base.astro";
+import DataTable from "../../components/DataTable.astro";
+import Related from "../../components/Related.astro";
+import weapons from "../../data/conan_weapons.json";
+
+const rows = weapons
+  .map((w) => ({
+    name: `<a href="/weapons/${w.slug}/">${w.name}</a>${w.icon_file ? ` <img src="/icons/${w.icon_file}" alt="" width="22" height="22" style="vertical-align:middle" loading="lazy" />` : ""}`,
+    _sort: w.name.toLowerCase(),
+    cls: w.weapon_class || "",
+    grade: w.grade || "",
+    dmg: w.dmg ?? "",
+    light: w.dmg_light ?? "",
+    heavy: w.dmg_heavy ?? "",
+    pen: w.armor_pen ?? "",
+    stam: w.stamina_basic ?? "",
+    dura: w.dura ?? "",
+    weight: w.weight ?? "",
+  }))
+  .sort((a: any, b: any) => a._sort.localeCompare(b._sort));
+
+const classes = Array.from(new Set(weapons.map((w) => w.weapon_class).filter(Boolean))).sort();
+---
+<Base
+  title={`Conan Exiles Weapons — ${weapons.length} weapons with damage & armor pen`}
+  description={`Complete Conan Exiles weapon database: light/heavy damage, armor penetration, stamina cost, durability and effects for all ${weapons.length} weapons.`}
+>
+  <h1>Conan Exiles Weapons</h1>
+  <p class="muted">{weapons.length} weapons · light & heavy damage, armor penetration, stamina cost. Click a column to sort, use the box to filter.</p>
+  <p>
+    {classes.map((c) => <span class="tag" style="margin:0.1rem">{c}</span>)}
+  </p>
+  <DataTable
+    id="weapons"
+    rows={rows as any}
+    searchPlaceholder="Search weapons..."
+    columns={[
+      { key: "name", label: "Weapon" },
+      { key: "cls", label: "Class" },
+      { key: "grade", label: "Grade" },
+      { key: "dmg", label: "Dmg", type: "number" },
+      { key: "light", label: "Light", type: "number" },
+      { key: "heavy", label: "Heavy", type: "number" },
+      { key: "pen", label: "Pen %", type: "number" },
+      { key: "stam", label: "Stam", type: "number" },
+      { key: "dura", label: "Dura", type: "number" },
+      { key: "weight", label: "Wgt", type: "number" },
+    ]}
+  />
+  <Related
+    links={[
+      { href: "/rankings/", title: "Weapon Rankings", sub: "Top damage, best armor pen" },
+      { href: "/armor/", title: "Browse Armor", sub: `${1737} pieces with armor values` },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter by type, grade, bonus", tool: true },
+    ]}
+  />
+</Base>

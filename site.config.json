@@ -1,0 +1,31 @@
+{
+  "siteName": "ConanDB",
+  "siteUrl": "https://conan-db.pages.dev",
+  "tagline": "Conan Exiles database — weapon damage, armor values & thralls",
+  "description": "Conan Exiles stats: weapon damage light/heavy with armor pen, armor value with heat and cold resist, thrall HP and XP, food and drink buffs — with an armor finder.",
+  "adsenseClientId": "ca-pub-3245910354455258",
+  "adsensePublisherId": "pub-3245910354455258",
+  "favicon": "⚔",
+  "footerNote": "Unofficial fan-made database for Conan Exiles. Not affiliated with Funcom.",
+  "theme": {
+    "bg": "#171310",
+    "bgSoft": "#211b16",
+    "card": "#241d17",
+    "border": "#3d3227",
+    "text": "#e8e0d2",
+    "muted": "#a49781",
+    "accent": "#c9a227",
+    "accent2": "#d8b84a",
+    "good": "#7fb069",
+    "bad": "#c75146"
+  },
+  "nav": [
+    { "href": "/weapons/", "label": "Weapons" },
+    { "href": "/armor/", "label": "Armor" },
+    { "href": "/thralls/", "label": "Thralls" },
+    { "href": "/consumables/", "label": "Consumables" },
+    { "href": "/rankings/", "label": "Rankings" },
+    { "href": "/armor-finder/", "label": "Armor Finder", "tool": true },
+    { "href": "/search/", "label": "A-Z" }
+  ]
+}
