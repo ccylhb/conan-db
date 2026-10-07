@@ -5,3 +5,5 @@ scripts/cache/
 _bak_tmp*/
 dist.bak/
 _push.log
+_*.log
+_conan_*.log
