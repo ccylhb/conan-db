@@ -1,0 +1,305 @@
+---
+import Base from "../layouts/Base.astro";
+import Related from "../components/Related.astro";
+import thralls from "../data/conan_thralls.json";
+
+// ---------- 数据整形 ----------
+const num = (v: any): number | null =>
+  typeof v === "number" && isFinite(v) ? v : null;
+
+type Row = {
+  name: string;
+  slug: string;
+  icon: string;
+  cls: string;
+  type: string;
+  faction: string;
+  temp: string;
+  hp: number | null;
+  ar: number | null;
+  xp: number | null;
+  eff: number | null; // kill XP per point of HP — 本站派生指标，wiki 不提供
+  thrallable: string;
+};
+
+const rows: Row[] = (thralls as any[]).map((t) => {
+  const hp = num(t.hp);
+  const xp = num(t.kill_xp);
+  return {
+    name: t.name,
+    slug: t.slug,
+    icon: t.image || "",
+    cls: t.class || "",
+    type: t.type || "",
+    faction: t.faction || "",
+    temp: t.temperament || "",
+    hp,
+    ar: num(t.armor),
+    xp,
+    eff: hp && xp && hp > 0 ? xp / hp : null,
+    thrallable: t.thrallable || "",
+  };
+});
+
+const factions = Array.from(new Set(rows.map((r) => r.faction).filter(Boolean))).sort();
+const classes = Array.from(new Set(rows.map((r) => r.cls).filter(Boolean))).sort();
+const types = Array.from(new Set(rows.map((r) => r.type).filter(Boolean))).sort();
+const temps = Array.from(new Set(rows.map((r) => r.temp).filter(Boolean))).sort();
+
+const thrallableCount = rows.filter((r) => r.thrallable === "yes").length;
+
+// ---------- 1) XP-per-HP 效率榜（派生指标） ----------
+const effRanked = rows
+  .filter((r) => r.eff !== null && (r.xp ?? 0) >= 100)
+  .sort((a, b) => (b.eff as number) - (a.eff as number));
+const effTop = effRanked.slice(0, 30);
+
+// ---------- 2) 阵营强度榜 ----------
+const byFaction = new Map<string, Row[]>();
+for (const r of rows) {
+  if (!r.faction) continue;
+  const arr = byFaction.get(r.faction) || [];
+  arr.push(r);
+  byFaction.set(r.faction, arr);
+}
+const factionStats = Array.from(byFaction.entries())
+  .map(([name, list]) => {
+    const hps = list.map((x) => x.hp).filter((v): v is number => v !== null);
+    const xps = list.map((x) => x.xp).filter((v): v is number => v !== null);
+    const avg = (a: number[]) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0);
+    return {
+      name,
+      n: list.length,
+      avgHp: avg(hps),
+      maxHp: hps.length ? Math.max(...hps) : 0,
+      avgXp: avg(xps),
+      maxXp: xps.length ? Math.max(...xps) : 0,
+      thrallable: list.filter((x) => x.thrallable === "yes").length,
+    };
+  })
+  .sort((a, b) => b.avgHp - a.avgHp);
+
+// ---------- 3) 职业 × 阵营 可得性矩阵 ----------
+const clsFaction = classes.map((c) => {
+  const inF = new Map<string, number>();
+  for (const r of rows) {
+    if (r.cls !== c || !r.faction) continue;
+    inF.set(r.faction, (inF.get(r.faction) || 0) + 1);
+  }
+  const entries = Array.from(inF.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const total = rows.filter((r) => r.cls === c).length;
+  return { cls: c, total, factions: entries };
+}).sort((a, b) => b.total - a.total);
+
+const topEff = effTop[0];
+const topFaction = factionStats[0];
+const biggestFaction = [...factionStats].sort((a, b) => b.n - a.n)[0];
+
+const f1 = (v: number) => (Math.round(v * 100) / 100).toFixed(2);
+const i0 = (v: number) => Math.round(v).toLocaleString("en-US");
+
+const slim = rows.map((r) => ({
+  n: r.name, s: r.slug, i: r.icon, c: r.cls, t: r.type, f: r.faction,
+  p: r.temp, h: r.hp, a: r.ar, x: r.xp, e: r.eff, k: r.thrallable,
+}));
+---
+<Base
+  title={`Conan Exiles Thrall Finder — ${rows.length} NPCs by faction, class & XP per HP`}
+  description={`Find any of the ${rows.length} Conan Exiles thralls and creatures by faction, class, type and temperament. Sort by HP, armor, kill XP or XP-per-HP efficiency — ${topEff ? `best value is ${topEff.name} at ${f1(topEff.eff as number)} XP per HP` : ""}, plus a ${factionStats.length}-faction toughness ranking.`}
+>
+  <h1>Conan Exiles Thrall Finder</h1>
+  <p>
+    Filter all <strong>{rows.length}</strong> named thralls, creatures and mini-bosses by
+    <strong>faction</strong>, <strong>class</strong>, <strong>type</strong> and <strong>temperament</strong>,
+    then sort on any stat. Everything runs in your browser — no page reloads.
+  </p>
+  <p class="muted">
+    Beyond the raw stats this page publishes two things the wiki does not: an <strong>XP-per-HP efficiency</strong>
+    ranking (which targets return the most kill XP for the health you have to chew through) and a
+    <strong>faction toughness leaderboard</strong> computed across all {rows.length} entries.
+  </p>
+
+  <div class="stat-row" style="margin:1rem 0 1.5rem">
+    <div><div class="stat-num">{rows.length}</div><div class="stat-label">NPCs indexed</div></div>
+    <div><div class="stat-num">{factionStats.length}</div><div class="stat-label">Factions</div></div>
+    <div><div class="stat-num">{classes.length}</div><div class="stat-label">Thrall classes</div></div>
+    <div><div class="stat-num">{thrallableCount}</div><div class="stat-label">Thrallable</div></div>
+    <div><div class="stat-num">{biggestFaction ? biggestFaction.n : 0}</div><div class="stat-label">Largest faction ({biggestFaction ? biggestFaction.name : "-"})</div></div>
+  </div>
+
+  <h2>Filter all {rows.length} NPCs</h2>
+  <div class="card" style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;margin:0.75rem 0">
+    <input id="q" type="search" placeholder="Name, class or faction (e.g. Priest, Black Hand)..." style="flex:1;min-width:220px" />
+    <select id="f"><option value="">All factions</option>{factions.map((x) => <option>{x}</option>)}</select>
+    <select id="c"><option value="">All classes</option>{classes.map((x) => <option>{x}</option>)}</select>
+    <select id="t"><option value="">All types</option>{types.map((x) => <option>{x}</option>)}</select>
+    <select id="p"><option value="">Any temperament</option>{temps.map((x) => <option>{x}</option>)}</select>
+    <select id="k">
+      <option value="">Thrallable + not</option>
+      <option value="yes">Thrallable only</option>
+      <option value="no">Not thrallable</option>
+    </select>
+    <select id="s">
+      <option value="eff">Sort: XP per HP</option>
+      <option value="hp">Sort: HP</option>
+      <option value="ar">Sort: Armor</option>
+      <option value="xp">Sort: Kill XP</option>
+      <option value="name">Sort: Name</option>
+    </select>
+    <input id="min" type="number" min="0" placeholder="Min HP" style="width:110px" />
+  </div>
+
+  <div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th></th><th>Name</th><th>Faction</th><th>Class</th><th>Type</th>
+      <th>HP</th><th>Armor</th><th>Kill XP</th><th>XP / HP</th><th>Thrallable</th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+  <p class="muted" id="count" style="font-size:0.85rem"></p>
+
+  <h2>Best XP per hit point</h2>
+  <p>
+    Kill XP divided by health. A high ratio means the target hands out a lot of XP for a short fight,
+    which is what you want when you are farming levels rather than chasing loot. Only entries with at
+    least 100 kill XP are ranked.
+  </p>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th>#</th><th>NPC</th><th>Faction</th><th>Type</th><th>HP</th><th>Kill XP</th><th>XP / HP</th></tr></thead>
+    <tbody>
+      {effTop.map((r, i) => (
+        <tr>
+          <td>{i + 1}</td>
+          <td><a href={`/thralls/${r.slug}/`}>{r.name}</a></td>
+          <td>{r.faction || "—"}</td>
+          <td>{r.type}</td>
+          <td>{r.hp ?? ""}</td>
+          <td>{r.xp ?? ""}</td>
+          <td><strong>{f1(r.eff as number)}</strong></td>
+        </tr>
+      ))}
+    </tbody>
+  </table></div>
+  <p class="muted" style="font-size:0.85rem">
+    Highest ratio overall: <strong>{topEff.name}</strong> — {topEff.hp} HP for {i0(topEff.xp ?? 0)} kill XP
+    ({f1(topEff.eff as number)} XP per HP).
+  </p>
+
+  <h2>Faction toughness leaderboard</h2>
+  <p>
+    Every faction ranked by the average health of its NPCs, with its hardest single entry. This is the fastest
+    way to see which faction you should avoid early and which one is worth farming later.
+  </p>
+  <div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Faction</th><th>NPCs</th><th>Avg HP</th><th>Toughest</th><th>Avg kill XP</th><th>Thrallable</th>
+    </tr></thead>
+    <tbody>
+      {factionStats.map((f) => (
+        <tr>
+          <td><strong>{f.name}</strong></td>
+          <td>{f.n}</td>
+          <td>{f1(f.avgHp)}</td>
+          <td>{i0(f.maxHp)}</td>
+          <td>{i0(f.avgXp)}</td>
+          <td>{f.thrallable} / {f.n}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table></div>
+  {topFaction && (
+    <p class="muted" style="font-size:0.85rem">
+      Toughest faction on average: <strong>{topFaction.name}</strong> at {f1(topFaction.avgHp)} HP
+      ({topFaction.n} NPCs). Most populous faction: <strong>{biggestFaction.name}</strong> with {biggestFaction.n} entries.
+    </p>
+  )}
+
+  <h2>Which factions have which thrall class</h2>
+  <p>
+    Looking for a specific workstation thrall — an Armorer, a Smelter, a Priest? This matrix shows every
+    faction each class appears in, ordered by how many of them it fields.
+  </p>
+  <div style="overflow-x:auto"><table>
+    <thead><tr><th>Class</th><th>Total</th><th>Available in</th></tr></thead>
+    <tbody>
+      {clsFaction.map((c) => (
+        <tr>
+          <td><strong>{c.cls}</strong></td>
+          <td>{c.total}</td>
+          <td>
+            {c.factions.length} faction{c.factions.length === 1 ? "" : "s"}:{" "}
+            {c.factions.map(([fname, cnt], i) => (
+              <>
+                {i > 0 && ", "}
+                <a href={`/thrall-finder/?q=${encodeURIComponent(fname)}`}>{fname}</a> ({cnt})
+              </>
+            ))}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table></div>
+
+  <Related
+    links={[
+      { href: "/thralls/", title: "All Thralls & Creatures", sub: "Full sortable table" },
+      { href: "/rankings/", title: "Rankings", sub: "Toughest NPCs by HP" },
+      { href: "/armor-finder/", title: "Armor Finder", sub: "Filter 1,700+ pieces by stat", tool: true },
+      { href: "/consumables/", title: "Consumables", sub: "Food, drink and buffs" },
+    ]}
+  />
+
+  <script define:vars={{ slim }}>
+    const tbody = document.getElementById("tbody");
+    const q = document.getElementById("q");
+    const fF = document.getElementById("f");
+    const cF = document.getElementById("c");
+    const tF = document.getElementById("t");
+    const pF = document.getElementById("p");
+    const kF = document.getElementById("k");
+    const sF = document.getElementById("s");
+    const minF = document.getElementById("min");
+    const count = document.getElementById("count");
+    const f1 = (v) => (Math.round(v * 100) / 100).toFixed(2);
+    const icon = (a) => a.i ? `<img src="/icons/${a.i}" alt="" width="26" height="26" loading="lazy" />` : "";
+    const render = () => {
+      const query = q.value.trim().toLowerCase();
+      const min = parseFloat(minF.value);
+      let list = slim.filter((a) => {
+        if (fF.value && a.f !== fF.value) return false;
+        if (cF.value && a.c !== cF.value) return false;
+        if (tF.value && a.t !== tF.value) return false;
+        if (pF.value && a.p !== pF.value) return false;
+        if (kF.value && a.k !== kF.value) return false;
+        if (!isNaN(min) && (a.h == null || a.h < min)) return false;
+        if (query) {
+          const hay = (a.n + " " + a.c + " " + a.f + " " + a.t).toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      });
+      const cmp = {
+        eff: (a, b) => (b.e || 0) - (a.e || 0),
+        hp: (a, b) => (b.h || 0) - (a.h || 0),
+        ar: (a, b) => (b.a || 0) - (a.a || 0),
+        xp: (a, b) => (b.x || 0) - (a.x || 0),
+        name: (a, b) => a.n.localeCompare(b.n),
+      }[sF.value];
+      list.sort(cmp);
+      tbody.innerHTML = list.slice(0, 200).map((a) =>
+        `<tr><td>${icon(a)}</td>` +
+        `<td><a href="/thralls/${a.s}/">${a.n}</a></td>` +
+        `<td>${a.f || "—"}</td><td>${a.c}</td><td>${a.t}</td>` +
+        `<td>${a.h ?? ""}</td><td>${a.a ?? ""}</td><td>${a.x ?? ""}</td>` +
+        `<td>${a.e ? f1(a.e) : ""}</td>` +
+        `<td>${a.k === "yes" ? "Yes" : a.k === "no" ? "No" : ""}</td></tr>`
+      ).join("");
+      count.textContent = `${list.length} match${list.length === 1 ? "" : "es"}${list.length > 200 ? " (showing first 200)" : ""}`;
+    };
+    [q, fF, cF, tF, pF, kF, sF, minF].forEach((el) => el.addEventListener("input", render));
+    // 支持从别的页面带 ?q= 过来（job 页 / 矩阵表里的阵营链接）
+    const pre = new URLSearchParams(location.search).get("q");
+    if (pre) q.value = pre;
+    render();
+  </script>
+</Base>

@@ -23,6 +23,7 @@
     { "href": "/weapons/", "label": "Weapons" },
     { "href": "/armor/", "label": "Armor" },
     { "href": "/thralls/", "label": "Thralls" },
+    { "href": "/thrall-finder/", "label": "Thrall Finder", "tool": true },
     { "href": "/consumables/", "label": "Consumables" },
     { "href": "/rankings/", "label": "Rankings" },
     { "href": "/armor-finder/", "label": "Armor Finder", "tool": true },
