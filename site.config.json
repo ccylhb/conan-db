@@ -20,13 +20,65 @@
     "bad": "#c75146"
   },
   "nav": [
-    { "href": "/weapons/", "label": "Weapons" },
-    { "href": "/armor/", "label": "Armor" },
-    { "href": "/thralls/", "label": "Thralls" },
-    { "href": "/thrall-finder/", "label": "Thrall Finder", "tool": true },
-    { "href": "/consumables/", "label": "Consumables" },
-    { "href": "/rankings/", "label": "Rankings" },
-    { "href": "/armor-finder/", "label": "Armor Finder", "tool": true },
-    { "href": "/search/", "label": "A-Z" }
-  ]
+    {
+      "href": "/weapons/",
+      "label": "Weapons"
+    },
+    {
+      "href": "/armor/",
+      "label": "Armor"
+    },
+    {
+      "href": "/thralls/",
+      "label": "Thralls"
+    },
+    {
+      "href": "/thrall-finder/",
+      "label": "Thrall Finder",
+      "tool": true
+    },
+    {
+      "href": "/consumables/",
+      "label": "Consumables"
+    },
+    {
+      "href": "/rankings/",
+      "label": "Rankings"
+    },
+    {
+      "href": "/armor-finder/",
+      "label": "Armor Finder",
+      "tool": true
+    },
+    {
+      "href": "/search/",
+      "label": "A-Z"
+    }
+  ],
+  "sisterSites": [
+    {
+      "name": "OnceHumanDB",
+      "url": "https://oncehuman.lootseer.com",
+      "blurb": "Armour HP and resistances, weapon crit, food and deviation stats."
+    },
+    {
+      "name": "D7TDDB",
+      "url": "https://7dtd.lootseer.com",
+      "blurb": "Zombie health by tier, weapon damage per quality, mods and ammo."
+    },
+    {
+      "name": "CoreDB",
+      "url": "https://corekeeper.lootseer.com",
+      "blurb": "Weapons, armour, food and enemies with material tiers."
+    },
+    {
+      "name": "BellwrightDB",
+      "url": "https://bellwright.lootseer.com",
+      "blurb": "Armour ratings with movement-speed penalties side by side."
+    }
+  ],
+  "hubSite": {
+    "name": "LootSeer",
+    "url": "https://lootseer.com"
+  }
 }
