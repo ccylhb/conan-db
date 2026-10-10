@@ -27,6 +27,9 @@ const classes = Array.from(new Set(weapons.map((w) => w.weapon_class).filter(Boo
   description={`Complete Conan Exiles weapon database: light/heavy damage, armor penetration, stamina cost, durability and effects for all ${weapons.length} weapons.`}
 >
   <h1>Conan Exiles Weapons</h1>
+  <p>
+    This page lists all {weapons.length} weapons in Conan Exiles, compiled from the in-game data, with their light and heavy damage, armor penetration, stamina cost, durability and weight. Use the search box to jump to a weapon by name, or click any column header to sort — sort by Dmg to find the hardest-hitting options, by Pen % to see which weapons cut through heavy armor, or by Stam to compare how punishing each combo is. Every entry links to a full breakdown covering the stats in context, how to obtain the weapon and combat notes.
+  </p>
   <p class="muted">{weapons.length} weapons · light & heavy damage, armor penetration, stamina cost. Click a column to sort, use the box to filter.</p>
   <p>
     {classes.map((c) => <span class="tag" style="margin:0.1rem">{c}</span>)}

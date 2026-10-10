@@ -2,12 +2,14 @@
 import Base from "../../layouts/Base.astro";
 import Related from "../../components/Related.astro";
 import weapons from "../../data/conan_weapons.json";
+import proseMap from "../../data/prose_weapons.json";
 
 export function getStaticPaths() {
   return weapons.map((w) => ({ params: { slug: w.slug }, props: { w } }));
 }
 
 const { w } = Astro.props as any;
+const prose = (proseMap as any)[w.slug];
 const stats = [
   { label: "Damage", value: w.dmg },
   { label: "Light", value: w.dmg_light },
@@ -52,6 +54,14 @@ const similar = weapons
     {w.id && <span class="tag" style="margin:0.1rem">ID: {w.id}</span>}
   </p>
   {w.intro && <p>{w.intro}</p>}
+  {prose && (
+    <section class="prose">
+      <h2>About {w.name}</h2>
+      <p>{prose.lead}</p>
+      {prose.body?.map((p: string) => <p>{p}</p>)}
+      {prose.verdict && <p class="verdict"><strong>Verdict:</strong> {prose.verdict}</p>}
+    </section>
+  )}
   <Related
     links={[
       ...similar.map((s: any) => ({

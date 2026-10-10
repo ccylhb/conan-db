@@ -2,12 +2,14 @@
 import Base from "../../layouts/Base.astro";
 import Related from "../../components/Related.astro";
 import thralls from "../../data/conan_thralls.json";
+import proseMap from "../../data/prose_thralls.json";
 
 export function getStaticPaths() {
   return thralls.map((t) => ({ params: { slug: t.slug }, props: { t } }));
 }
 
 const { t } = Astro.props as any;
+const prose = (proseMap as any)[t.slug];
 const stats = [
   { label: "HP", value: t.hp },
   { label: "Armor", value: t.armor },
@@ -45,6 +47,14 @@ const tougher = thralls
     {t.id && <span class="tag" style="margin:0.1rem">ID: {t.id}</span>}
   </p>
   {t.loc && <p><strong>Location:</strong> {t.loc}</p>}
+  {prose && (
+    <section class="prose">
+      <h2>About {t.name}</h2>
+      <p>{prose.lead}</p>
+      {prose.body?.map((p: string) => <p>{p}</p>)}
+      {prose.verdict && <p class="verdict"><strong>Verdict:</strong> {prose.verdict}</p>}
+    </section>
+  )}
   <Related
     links={[
       ...tougher.map((s: any) => ({

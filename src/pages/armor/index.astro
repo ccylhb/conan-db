@@ -26,6 +26,9 @@ const types = Array.from(new Set(armor.map((a) => a.armor_type).filter(Boolean))
   description={`Complete Conan Exiles armor database: armor value, heat/cold resistance, weight, set bonus and grade for ${armor.length} pieces.`}
 >
   <h1>Conan Exiles Armor</h1>
+  <p>
+    This page lists all {armor.length} armor pieces in Conan Exiles with their armor value, heat and cold resistance, weight, set bonus and grade. Filter with the search box or sort any column — sort by Armor to find the most protective pieces, by Heat or Cold to gear up for a specific biome, or by Set to group pieces that share a bonus. Each entry links to a full write-up covering the armor type's playstyle, the set bonus and how the piece ranks within its set.
+  </p>
   <p class="muted">{armor.length} pieces · armor value, heat & cold resist, set bonus. Click a column to sort.</p>
   <p>
     {types.map((c) => <span class="tag" style="margin:0.1rem">{c}</span>)}

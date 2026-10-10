@@ -2,12 +2,14 @@
 import Base from "../../layouts/Base.astro";
 import Related from "../../components/Related.astro";
 import armor from "../../data/conan_armor.json";
+import proseMap from "../../data/prose_armor.json";
 
 export function getStaticPaths() {
   return armor.map((a) => ({ params: { slug: a.slug }, props: { a } }));
 }
 
 const { a } = Astro.props as any;
+const prose = (proseMap as any)[a.slug];
 const stats = [
   { label: "Armor Value", value: a.armor },
   { label: "Heat Resist", value: a.heat_res },
@@ -52,6 +54,14 @@ const setmates = a.armor_set
     </div>
   )}
   {a.intro && <p>{a.intro}</p>}
+  {prose && (
+    <section class="prose">
+      <h2>About {a.name}</h2>
+      <p>{prose.lead}</p>
+      {prose.body?.map((p: string) => <p>{p}</p>)}
+      {prose.verdict && <p class="verdict"><strong>Verdict:</strong> {prose.verdict}</p>}
+    </section>
+  )}
   <Related
     links={[
       ...setmates.map((s: any) => ({

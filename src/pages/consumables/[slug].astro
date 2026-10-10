@@ -2,12 +2,14 @@
 import Base from "../../layouts/Base.astro";
 import Related from "../../components/Related.astro";
 import consumables from "../../data/conan_consumables.json";
+import proseMap from "../../data/prose_consumables.json";
 
 export function getStaticPaths() {
   return consumables.map((c) => ({ params: { slug: c.slug }, props: { c } }));
 }
 
 const { c } = Astro.props as any;
+const prose = (proseMap as any)[c.slug];
 const stats = [
   { label: "Heal", value: c.heal },
   { label: "Food", value: c.food },
@@ -44,6 +46,14 @@ const related = consumables
     {c.id && <span class="tag" style="margin:0.1rem">ID: {c.id}</span>}
   </p>
   {c.intro && <p>{c.intro}</p>}
+  {prose && (
+    <section class="prose">
+      <h2>About {c.name}</h2>
+      <p>{prose.lead}</p>
+      {prose.body?.map((p: string) => <p>{p}</p>)}
+      {prose.verdict && <p class="verdict"><strong>Verdict:</strong> {prose.verdict}</p>}
+    </section>
+  )}
   <Related
     links={[
       ...related.map((s: any) => ({
