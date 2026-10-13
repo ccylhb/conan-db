@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { cl, stats as mkStats, desc as mkDesc, best } from "../../lib/seo";
 import Related from "../../components/Related.astro";
 import consumables from "../../data/conan_consumables.json";
 import proseMap from "../../data/prose_consumables.json";
@@ -22,10 +23,25 @@ const related = consumables
   .filter((x: any) => x.slug !== c.slug && (x.heal || x.food || x.drink) && (c.heal || c.food || c.drink))
   .sort((a: any, b: any) => ((b.heal || 0) - (a.heal || 0)))
   .slice(0, 6);
+
+const description =
+  mkDesc(
+    `${c.name} (Conan Exiles consumable):`,
+    mkStats(
+      cl(c.heal) && `heal ${cl(c.heal)}`,
+      cl(c.food) && `food ${cl(c.food)}`,
+      cl(c.drink) && `drink ${cl(c.drink)}`,
+      cl(c.weight) && `weight ${cl(c.weight)}`,
+      cl(c.stack) && `stack ${cl(c.stack)}`
+    ),
+    cl(c.effect) && `${cl(c.effect)}.`,
+    "Conan Exiles consumable stats and how to obtain it."
+  ) || best(prose?.lead, `${c.name} is a Conan Exiles consumable.`);
+
 ---
 <Base
   title={`${c.name} — Conan Exiles consumable stats`}
-  description={`${c.name}: heal ${c.heal ?? 0}, food ${c.food ?? 0}, drink ${c.drink ?? 0}${c.effect ? `, effects: ${c.effect}` : ""} — Conan Exiles consumable stats.`}
+  description={description}
 >
   <h1 class="icon-h1">
     {c.icon_file ? <img src={`/icons/${c.icon_file}`} alt={c.name} loading="eager" /> : null}

@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { cl, stats as mkStats, desc as mkDesc, best } from "../../lib/seo";
 import Related from "../../components/Related.astro";
 import armor from "../../data/conan_armor.json";
 import proseMap from "../../data/prose_armor.json";
@@ -23,10 +24,25 @@ const shown = stats.filter((s) => s.value !== null && s.value !== undefined && s
 const setmates = a.armor_set
   ? armor.filter((x: any) => x.armor_set === a.armor_set && x.slug !== a.slug).slice(0, 6)
   : [];
+
+const description =
+  mkDesc(
+    `${a.name} (Conan Exiles armor):`,
+    mkStats(
+      cl(a.armor) && `armor ${cl(a.armor)}`,
+      cl(a.heat_res) && `${cl(a.heat_res)} heat resist`,
+      cl(a.cold_res) && `${cl(a.cold_res)} cold resist`,
+      cl(a.dura) && `durability ${cl(a.dura)}`,
+      cl(a.weight) && `weight ${cl(a.weight)}`
+    ),
+    cl(a.bonus) && `Bonus: ${cl(a.bonus)}.`,
+    "Full Conan Exiles armor stats and where to find it."
+  ) || best(prose?.lead, `${a.name} is a Conan Exiles armor piece.`);
+
 ---
 <Base
   title={`${a.name} — Conan Exiles armor stats`}
-  description={`${a.name}: armor ${a.armor ?? "?"}, heat resist ${a.heat_res ?? "?"}, cold resist ${a.cold_res ?? "?"} — full Conan Exiles armor stats${a.bonus ? ` with bonus: ${a.bonus}` : ""}.`}
+  description={description}
 >
   <h1 class="icon-h1">
     {a.icon_file ? <img src={`/icons/${a.icon_file}`} alt={a.name} loading="eager" /> : null}

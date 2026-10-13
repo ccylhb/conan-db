@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { cl, stats as mkStats, desc as mkDesc, best } from "../../lib/seo";
 import Related from "../../components/Related.astro";
 import weapons from "../../data/conan_weapons.json";
 import proseMap from "../../data/prose_weapons.json";
@@ -28,10 +29,25 @@ const similar = weapons
   .filter((x: any) => x.weapon_class === w.weapon_class && x.slug !== w.slug && x.dmg)
   .sort((a: any, b: any) => (b.dmg || 0) - (a.dmg || 0))
   .slice(0, 6);
+
+const description =
+  mkDesc(
+    `${w.name} (Conan Exiles weapon):`,
+    mkStats(
+      cl(w.dmg) && `${cl(w.dmg)} damage`,
+      cl(w.dmg_light) && `${cl(w.dmg_light)} light`,
+      cl(w.dmg_heavy) && `${cl(w.dmg_heavy)} heavy`,
+      cl(w.armor_pen) && `${cl(w.armor_pen)}% armor pen`,
+      cl(w.dura) && `durability ${cl(w.dura)}`,
+      cl(w.weight) && `weight ${cl(w.weight)}`
+    ),
+    "Damage per light and heavy attack, armor pen and how to craft it."
+  ) || best(prose?.lead, `${w.name} is a Conan Exiles weapon.`);
+
 ---
 <Base
   title={`${w.name} — Conan Exiles weapon stats`}
-  description={`${w.name}: damage ${w.dmg ?? "?"}, light ${w.dmg_light ?? "?"}, heavy ${w.dmg_heavy ?? "?"}, armor pen ${w.armor_pen ?? "?"}% — full Conan Exiles weapon stats.`}
+  description={description}
 >
   <h1 class="icon-h1">
     {w.icon_file ? <img src={`/icons/${w.icon_file}`} alt={w.name} loading="eager" /> : null}

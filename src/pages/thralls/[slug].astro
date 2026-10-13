@@ -1,5 +1,6 @@
 ---
 import Base from "../../layouts/Base.astro";
+import { cl, stats as mkStats, desc as mkDesc, best } from "../../lib/seo";
 import Related from "../../components/Related.astro";
 import thralls from "../../data/conan_thralls.json";
 import proseMap from "../../data/prose_thralls.json";
@@ -19,10 +20,24 @@ const tougher = thralls
   .filter((x: any) => x.class === t.class && x.slug !== t.slug && x.type !== "Normal")
   .sort((a: any, b: any) => (b.hp || 0) - (a.hp || 0))
   .slice(0, 6);
+
+const description =
+  mkDesc(
+    `${t.name} (Conan Exiles thrall):`,
+    mkStats(
+      cl(t.hp) && `${cl(t.hp)} HP`,
+      cl(t.armor) && `armor ${cl(t.armor)}`,
+      cl(t.kill_xp) && `${cl(t.kill_xp)} kill XP`,
+      cl(t.type) && `${cl(t.type)}`
+    ),
+    cl(t.loc) && `Found at ${cl(t.loc)}.`,
+    "Thrall and creature stats, hit points and how to knock it out."
+  ) || best(prose?.lead, `${t.name} is a Conan Exiles thrall or creature.`);
+
 ---
 <Base
   title={`${t.name} — Conan Exiles thrall stats (HP ${t.hp})`}
-  description={`${t.name}: ${t.hp} HP, armor ${t.armor ?? "?"}, ${t.kill_xp ?? "?"} kill XP${t.loc ? `, located at ${t.loc}` : ""} — Conan Exiles thrall & creature stats.`}
+  description={description}
 >
   <h1 class="icon-h1">
     {t.icon_file ? <img src={`/icons/${t.icon_file}`} alt={t.name} loading="eager" /> : null}
