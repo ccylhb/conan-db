@@ -186,13 +186,19 @@ def expand_magic(wt, title):
     wt = _MAGIC_TITLE.sub(lambda _m: title, wt)
     wt = _MAGIC_GAME.sub("Conan Exiles", wt)
     wt = _MAGIC_DROP.sub("", wt)
+    # 模板文档注释会污染 name 参数，先整段删掉 HTML 注释
+    wt = re.sub(r"<!--.*?-->", "", wt, flags=re.S)
     return wt
 
 
 def fetch_wikitexts(titles, cache_path):
-    if os.path.exists(cache_path):
-        return json.load(open(cache_path, encoding="utf-8"))
+    # incremental cache: keep cached pages, fetch only titles missing from it
     wts = {}
+    if os.path.exists(cache_path):
+        wts = json.load(open(cache_path, encoding="utf-8"))
+    titles = [t for t in titles if t not in wts]
+    if not titles:
+        return wts
     batch = 20
     for i in range(0, len(titles), batch):
         chunk = titles[i:i + batch]
